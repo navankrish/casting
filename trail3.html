@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Your Webpage Title</title>
+    <style>
+        /* Add your CSS styles here */
+        .container {
+            width: 100%; /* Make the container full width */
+        }
+        
+        .column {
+            width: 100%; /* Make columns full width on small screens */
+            float: none; /* Remove float for stacked layout */
+        }
+
+        /* Default styles for larger screens */
+        body {
+            /* https://coolors.co/f06449-ede6e3-7d82b8-36382e-613f75  */
+            --background-color: #ede6e3;
+            --wall-color: #36382e;
+            --joystick-color: #210124;
+            --joystick-head-color: #f06449;
+            --ball-color: #f06449;
+            --end-color: #7d82b8;
+            --text-color: #210124;
+        
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
+
+        #center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        #game {
+            display: grid;
+            grid-template-columns: auto 150px;
+            grid-template-rows: 1fr auto 1fr;
+            gap: 30px;
+            perspective: 600px;
+        }
+
+        #maze {
+            position: relative;
+            grid-row: 1 / -1;
+            grid-column: 1;
+            width: 350px;
+            height: 315px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #end {
+            width: 65px;
+            height: 65px;
+            border: 5px dashed var(--end-color);
+            border-radius: 50%;
+        }
+
+        #joystick {
+            position: relative;
+            background-color: var(--joystick-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px 50px;
+            grid-row: 2;
+        }
+
+        #joystick-head {
+            position: relative;
+            background-color: var(--joystick-head-color);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: grab;
+
+            animation-name: glow;
+            animation-duration: 0.6s;
+            animation-iteration-count: infinite;
+            animation-direction: alternate;
+            animation-timing-function: ease-in-out;
+            animation-delay: 4s;
+        }
+
+        @keyframes glow {
+            0% {
+                transform: scale(1);
+            }
+            100% {
+                transform: scale(1.2);
+            }
+        }
+
+        .joystick-arrow:nth-of-type(1) {
+            position: absolute;
+            bottom: 55px;
+
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+
+            border-bottom: 10px solid var(--joystick-color);
+        }
+
+        .joystick-arrow:nth-of-type(2) {
+            position: absolute;
+            top: 55px;
+
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+
+            border-top: 10px solid var(--joystick-color);
+        }
+
+        .joystick-arrow:nth-of-type(3) {
+            position: absolute;
+            left: 55px;
+
+            width: 0;
+            height: 0;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+
+            border-left: 10px solid var(--joystick-color);
+        }
+
+        .joystick-arrow:nth-of-type(4) {
+            position: absolute;
+            right: 55px;
+
+            width: 0;
+            height: 0;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+
+            border-right: 10px solid var(--joystick-color);
+        }
+
+        #note {
+            grid-row: 3;
+            grid-column: 2;
+            text-align: center;
+            font-size: 0.8em;
+            color: var(--text-color);
+            transition: opacity 2s;
+        }
+
+        a:visited {
+            color: inherit;
+        }
+
+        .ball {
+            position: absolute;
+            margin-top: -5px;
+            margin-left: -5px;
+            background-color: var(--ball-color);
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+    </style>
+</head>
+<body>
+    <div id="center">
+        <div id="game">
+            <div id="maze">
+                <div id="ball" class="ball"></div>
+                <div id="end"></div>
+            </div>
+            <div id="joystick">
+                <div id="joystick-head" class="joystick-arrow"></div>
+                <div class="joystick-arrow"></div>
+                <div class="joystick-arrow"></div>
+                <div class="joystick-arrow"></div>
+            </div>
+            <div id="note">*This is a game, you can move the joystick to navigate the ball to the end point.</div>
+        </div>
+    </div>
+
+    <script>
+        /* Add your JavaScript code here */
+        const joystick = document.getElementById('joystick');
+        const joystickHead = document.getElementById('joystick-head');
+        const ball = document.getElementById('ball');
+        const maze = document.getElementById('maze');
+        const end = document.getElementById('end');
+        const note = document.getElementById('note');
+
+        let isDragging = false;
+
+        joystickHead.addEventListener('mousedown', startDrag);
+        joystickHead.addEventListener('mouseup', stopDrag);
+        joystickHead.addEventListener('mouseleave', stopDrag);
+        joystickHead.addEventListener('touchstart', startDrag);
+        joystickHead.addEventListener('touchend', stopDrag);
+        joystickHead.addEventListener('touchcancel', stopDrag);
+
+        function startDrag(e) {
+            isDragging = true;
+            joystickHead.style.cursor = 'grabbing';
+        }
+
+        function stopDrag(e) {
+            isDragging = false;
+            joystickHead.style.cursor = 'grab';
+        }
+
+        document.addEventListener('mousemove', moveJoystick);
+        document.addEventListener('touchmove', moveJoystick);
+
+        function moveJoystick(e) {
+            if (!isDragging) return;
+
+            e.preventDefault();
+
+            let clientX, clientY;
+            if (e.type === 'touchmove') {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+
+            const rect = joystick.getBoundingClientRect();
+            const offsetX = clientX - (rect.left + rect.width / 2);
+            const offsetY = clientY - (rect.top + rect.height / 2);
+
+            const magnitude = Math.min(25, Math.sqrt(offsetX ** 2 + offsetY ** 2));
+            const angle = Math.atan2(offsetY, offsetX);
+
+            const x = Math.cos(angle) * magnitude;
+            const y = Math.sin(angle) * magnitude;
+
+            joystickHead.style.transform = `translate(${x}px, ${y}px)`;
+
+            moveBall(x, y);
+        }
+
+        function moveBall(x, y) {
+            const rect = maze.getBoundingClientRect();
+            const ballRect = ball.getBoundingClientRect();
+
+            let newX = ballRect.left - rect.left + x;
+            let newY = ballRect.top - rect.top + y;
+
+            if (newX < 0) newX = 0;
+            if (newX > rect.width - ballRect.width) newX = rect.width - ballRect.width;
+            if (newY < 0) newY = 0;
+            if (newY > rect.height - ballRect.height) newY = rect.height - ballRect.height;
+
+            ball.style.transform = `translate(${newX}px, ${newY}px)`;
+
+            checkCollision(newX, newY);
+        }
+
+        function checkCollision(x, y) {
+            const ballRect = ball.getBoundingClientRect();
+            const endRect = end.getBoundingClientRect();
+
+            if (
+                ballRect.left < endRect.left + endRect.width &&
+                ballRect.left + ballRect.width > endRect.left &&
+                ballRect.top < endRect.top + endRect.height &&
+                ballRect.top + ballRect.height > endRect.top
+            ) {
+                note.textContent = 'Congratulations! You reached the end point.';
+            }
+        }
+    </script>
+</body>
+</html>

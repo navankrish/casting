@@ -21,11 +21,23 @@
 }
 
 
+body {
+  /* Set background image */
+  background-image: url('map.png'); /* Replace 'path_to_your_image.jpg' with the path to your image */
+  /* Make the background image semi-transparent */
+  background-color: rgba(0, 0, 0, 0.5); /* Adjust the last value (0.5) to control the opacity (0 is fully transparent, 1 is fully opaque) */
+  /* Rest of your CSS styles */
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-size: cover; /* Cover the entire background */
+  background-position: center; /* Center the background image */
+}
+
+
 
 /* Add your CSS styles here */
 body {
   /* https://coolors.co/f06449-ede6e3-7d82b8-36382e-613f75  */
-  --background-color: #ede6e3;
+  --background-color: #ffffff;
   --wall-color: #36382e;
   --joystick-color: #210124;
   --joystick-head-color: #f06449;
